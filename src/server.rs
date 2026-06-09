@@ -128,6 +128,75 @@ pub struct StatsParams {
     pub until: Option<i64>,
 }
 
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct FavoritesParams {
+    /// 返回数量上限，默认 50
+    #[serde(default = "default_50")]
+    pub limit: usize,
+    /// 类型过滤（可选）：1=文本 2=图片 5=文章 19=名片 20=视频
+    pub fav_type: Option<i64>,
+    /// 内容关键词搜索（可选）
+    pub query: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct SnsFeedParams {
+    /// 返回数量上限，默认 20
+    #[serde(default = "default_20")]
+    pub limit: usize,
+    /// 起始时间 Unix timestamp（可选）
+    pub since: Option<i64>,
+    /// 结束时间 Unix timestamp（可选）
+    pub until: Option<i64>,
+    /// 按作者过滤（昵称/备注名/微信 ID，模糊匹配，可选）
+    pub user: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct SnsSearchParams {
+    /// 朋友圈正文关键词（必填）
+    pub keyword: String,
+    /// 返回数量上限，默认 20
+    #[serde(default = "default_20")]
+    pub limit: usize,
+    /// 起始时间 Unix timestamp（可选）
+    pub since: Option<i64>,
+    /// 结束时间 Unix timestamp（可选）
+    pub until: Option<i64>,
+    /// 限定作者（可选）
+    pub user: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct SnsNotificationsParams {
+    /// 返回数量上限，默认 50
+    #[serde(default = "default_50")]
+    pub limit: usize,
+    /// 起始时间 Unix timestamp（可选）
+    pub since: Option<i64>,
+    /// 结束时间 Unix timestamp（可选）
+    pub until: Option<i64>,
+    /// 是否包含已读通知，默认 false
+    #[serde(default)]
+    pub include_read: bool,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct BizArticlesParams {
+    /// 返回数量上限，默认 50
+    #[serde(default = "default_50")]
+    pub limit: usize,
+    /// 公众号名称模糊过滤（可选）
+    pub account: Option<String>,
+    /// 起始时间 Unix timestamp（可选）
+    pub since: Option<i64>,
+    /// 结束时间 Unix timestamp（可选）
+    pub until: Option<i64>,
+    /// 只看有未读消息的公众号，默认 false
+    #[serde(default)]
+    pub unread: bool,
+}
+
 #[derive(Clone)]
 pub struct WxServer {
     tool_router: ToolRouter<Self>,
@@ -276,6 +345,82 @@ impl WxServer {
         .await
         .and_then(to_tool_result)
     }
+
+    #[tool(description = "查看微信收藏内容，支持按类型（文字/图片/文章/视频）和关键词过滤。")]
+    async fn wx_favorites(
+        &self,
+        Parameters(p): Parameters<FavoritesParams>,
+    ) -> Result<CallToolResult, ErrorData> {
+        ipc_query(Request::Favorites {
+            limit: p.limit,
+            fav_type: p.fav_type,
+            query: p.query,
+        })
+        .await
+        .and_then(to_tool_result)
+    }
+
+    #[tool(description = "浏览朋友圈时间线，可按时间范围和作者过滤。")]
+    async fn wx_sns_feed(
+        &self,
+        Parameters(p): Parameters<SnsFeedParams>,
+    ) -> Result<CallToolResult, ErrorData> {
+        ipc_query(Request::SnsFeed {
+            limit: p.limit,
+            since: p.since,
+            until: p.until,
+            user: p.user,
+        })
+        .await
+        .and_then(to_tool_result)
+    }
+
+    #[tool(description = "全文搜索朋友圈内容，匹配帖子正文中的关键词。")]
+    async fn wx_sns_search(
+        &self,
+        Parameters(p): Parameters<SnsSearchParams>,
+    ) -> Result<CallToolResult, ErrorData> {
+        ipc_query(Request::SnsSearch {
+            keyword: p.keyword,
+            limit: p.limit,
+            since: p.since,
+            until: p.until,
+            user: p.user,
+        })
+        .await
+        .and_then(to_tool_result)
+    }
+
+    #[tool(description = "查看朋友圈互动通知：别人对我的朋友圈点赞/评论，以及我评论过的帖子的后续回复。")]
+    async fn wx_sns_notifications(
+        &self,
+        Parameters(p): Parameters<SnsNotificationsParams>,
+    ) -> Result<CallToolResult, ErrorData> {
+        ipc_query(Request::SnsNotifications {
+            limit: p.limit,
+            since: p.since,
+            until: p.until,
+            include_read: p.include_read,
+        })
+        .await
+        .and_then(to_tool_result)
+    }
+
+    #[tool(description = "查询本地缓存的公众号文章推送，可按公众号名称过滤，可只看有未读的。")]
+    async fn wx_biz_articles(
+        &self,
+        Parameters(p): Parameters<BizArticlesParams>,
+    ) -> Result<CallToolResult, ErrorData> {
+        ipc_query(Request::BizArticles {
+            limit: p.limit,
+            account: p.account,
+            since: p.since,
+            until: p.until,
+            unread: p.unread,
+        })
+        .await
+        .and_then(to_tool_result)
+    }
 }
 
 #[tool_handler(
@@ -325,5 +470,60 @@ mod tests {
         assert_eq!(params.chat, "demo-chat");
         assert_eq!(params.since, Some(10));
         assert_eq!(params.until, Some(20));
+    }
+
+    #[test]
+    fn favorites_params_default_limit_and_optional_filters() {
+        let params: FavoritesParams = serde_json::from_value(json!({})).unwrap();
+
+        assert_eq!(params.limit, 50);
+        assert_eq!(params.fav_type, None);
+        assert_eq!(params.query, None);
+    }
+
+    #[test]
+    fn sns_feed_params_default_limit_and_optional_filters() {
+        let params: SnsFeedParams = serde_json::from_value(json!({
+            "user": "alice",
+        }))
+        .unwrap();
+
+        assert_eq!(params.limit, 20);
+        assert_eq!(params.since, None);
+        assert_eq!(params.until, None);
+        assert_eq!(params.user.as_deref(), Some("alice"));
+    }
+
+    #[test]
+    fn sns_search_params_require_keyword_and_default_limit() {
+        let params: SnsSearchParams = serde_json::from_value(json!({
+            "keyword": "coffee",
+        }))
+        .unwrap();
+
+        assert_eq!(params.keyword, "coffee");
+        assert_eq!(params.limit, 20);
+        assert_eq!(params.user, None);
+    }
+
+    #[test]
+    fn sns_notifications_params_default_limit_and_include_read_false() {
+        let params: SnsNotificationsParams = serde_json::from_value(json!({})).unwrap();
+
+        assert_eq!(params.limit, 50);
+        assert_eq!(params.since, None);
+        assert_eq!(params.until, None);
+        assert!(!params.include_read);
+    }
+
+    #[test]
+    fn biz_articles_params_default_limit_and_unread_false() {
+        let params: BizArticlesParams = serde_json::from_value(json!({})).unwrap();
+
+        assert_eq!(params.limit, 50);
+        assert_eq!(params.account, None);
+        assert_eq!(params.since, None);
+        assert_eq!(params.until, None);
+        assert!(!params.unread);
     }
 }
