@@ -1,9 +1,9 @@
 use crate::ipc_types::{Request, Response};
 use anyhow::{Context, Result};
 use std::io::{BufRead, BufReader, Write};
-use std::time::Duration;
 
-/// Returns ~/.wx-cli/daemon.sock path (used on Unix).
+/// Returns ~/.wx-cli/daemon.sock path (Unix only).
+#[cfg(unix)]
 pub fn sock_path() -> std::path::PathBuf {
     dirs::home_dir()
         .unwrap_or_else(|| std::path::PathBuf::from("."))
@@ -27,6 +27,7 @@ pub fn ipc_send(req: Request) -> Result<Response> {
 #[cfg(unix)]
 fn send_unix(req: Request) -> Result<Response> {
     use std::os::unix::net::UnixStream;
+    use std::time::Duration;
 
     let path = sock_path();
     let mut stream = UnixStream::connect(&path).with_context(|| {
