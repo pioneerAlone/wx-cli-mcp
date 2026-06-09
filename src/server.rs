@@ -39,6 +39,10 @@ fn default_50() -> usize {
     50
 }
 
+fn default_200() -> usize {
+    200
+}
+
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 pub struct SessionsParams {
     /// 返回会话数量上限，默认 20
@@ -88,6 +92,40 @@ pub struct ContactsParams {
     /// 返回数量上限，默认 50
     #[serde(default = "default_50")]
     pub limit: usize,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct UnreadParams {
+    /// 返回数量上限，默认 20
+    #[serde(default = "default_20")]
+    pub limit: usize,
+    /// 按会话类型过滤（可选）：private / group / official / folded / all
+    pub filter: Option<Vec<String>>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct MembersParams {
+    /// 群聊会话 ID 或显示名称（必填）
+    pub chat: String,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct NewMessagesParams {
+    /// 上次检查时各会话的 last_timestamp 快照（首次调用时省略）
+    pub state: Option<std::collections::HashMap<String, i64>>,
+    /// 返回数量上限，默认 200
+    #[serde(default = "default_200")]
+    pub limit: usize,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct StatsParams {
+    /// 会话 ID 或显示名称（必填）
+    pub chat: String,
+    /// 统计起始时间 Unix timestamp（可选）
+    pub since: Option<i64>,
+    /// 统计结束时间 Unix timestamp（可选）
+    pub until: Option<i64>,
 }
 
 #[derive(Clone)]
@@ -180,6 +218,64 @@ impl WxServer {
         .await
         .and_then(to_tool_result)
     }
+
+    #[tool(description = "返回有未读消息的会话列表，可按类型过滤（private/group/official）。")]
+    async fn wx_unread(
+        &self,
+        Parameters(p): Parameters<UnreadParams>,
+    ) -> Result<CallToolResult, ErrorData> {
+        ipc_query(Request::Unread {
+            limit: p.limit,
+            filter: p.filter,
+            with_meta: false,
+            debug_source: false,
+        })
+        .await
+        .and_then(to_tool_result)
+    }
+
+    #[tool(description = "获取群聊成员列表，包含成员的 username 和显示名称。")]
+    async fn wx_members(
+        &self,
+        Parameters(p): Parameters<MembersParams>,
+    ) -> Result<CallToolResult, ErrorData> {
+        ipc_query(Request::Members { chat: p.chat })
+            .await
+            .and_then(to_tool_result)
+    }
+
+    #[tool(
+        description = "获取自上次检查以来的新消息。首次调用不传 state，保存返回的 new_state 供下次使用。"
+    )]
+    async fn wx_new_messages(
+        &self,
+        Parameters(p): Parameters<NewMessagesParams>,
+    ) -> Result<CallToolResult, ErrorData> {
+        ipc_query(Request::NewMessages {
+            state: p.state,
+            limit: p.limit,
+            with_meta: false,
+            debug_source: false,
+        })
+        .await
+        .and_then(to_tool_result)
+    }
+
+    #[tool(description = "查看指定会话的聊天统计：消息总数、活跃时段分布等。")]
+    async fn wx_stats(
+        &self,
+        Parameters(p): Parameters<StatsParams>,
+    ) -> Result<CallToolResult, ErrorData> {
+        ipc_query(Request::Stats {
+            chat: p.chat,
+            since: p.since,
+            until: p.until,
+            with_meta: false,
+            debug_source: false,
+        })
+        .await
+        .and_then(to_tool_result)
+    }
 }
 
 #[tool_handler(
@@ -189,3 +285,45 @@ impl WxServer {
     instructions = "本地微信数据 MCP server。需要先运行 wx daemon start 启动 daemon。"
 )]
 impl ServerHandler for WxServer {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+    use std::collections::HashMap;
+
+    #[test]
+    fn unread_params_use_default_limit_and_optional_filter() {
+        let params: UnreadParams = serde_json::from_value(json!({})).unwrap();
+
+        assert_eq!(params.limit, 20);
+        assert_eq!(params.filter, None);
+    }
+
+    #[test]
+    fn new_messages_params_default_limit_is_200_and_preserves_state() {
+        let mut state = HashMap::new();
+        state.insert("chat-1".to_string(), 123_i64);
+        let params: NewMessagesParams = serde_json::from_value(json!({
+            "state": state,
+        }))
+        .unwrap();
+
+        assert_eq!(params.limit, 200);
+        assert_eq!(params.state.unwrap().get("chat-1"), Some(&123_i64));
+    }
+
+    #[test]
+    fn stats_params_accept_optional_since_until() {
+        let params: StatsParams = serde_json::from_value(json!({
+            "chat": "demo-chat",
+            "since": 10,
+            "until": 20,
+        }))
+        .unwrap();
+
+        assert_eq!(params.chat, "demo-chat");
+        assert_eq!(params.since, Some(10));
+        assert_eq!(params.until, Some(20));
+    }
+}
