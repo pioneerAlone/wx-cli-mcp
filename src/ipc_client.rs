@@ -1,7 +1,7 @@
+use crate::ipc_types::{Request, Response};
 use anyhow::{Context, Result};
 use std::io::{BufRead, BufReader, Write};
 use std::time::Duration;
-use crate::ipc_types::{Request, Response};
 
 /// Returns ~/.wx-cli/daemon.sock path (used on Unix).
 pub fn sock_path() -> std::path::PathBuf {
@@ -29,13 +29,16 @@ fn send_unix(req: Request) -> Result<Response> {
     use std::os::unix::net::UnixStream;
 
     let path = sock_path();
-    let mut stream = UnixStream::connect(&path)
-        .with_context(|| format!(
+    let mut stream = UnixStream::connect(&path).with_context(|| {
+        format!(
             "cannot connect to wx-daemon at {}. Please run: wx daemon start",
             path.display()
-        ))?;
+        )
+    })?;
     stream.set_read_timeout(Some(Duration::from_secs(120))).ok();
-    stream.set_write_timeout(Some(Duration::from_secs(120))).ok();
+    stream
+        .set_write_timeout(Some(Duration::from_secs(120)))
+        .ok();
 
     let req_str = serde_json::to_string(&req)? + "\n";
     stream.write_all(req_str.as_bytes())?;

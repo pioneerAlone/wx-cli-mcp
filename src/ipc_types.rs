@@ -177,7 +177,15 @@ pub struct Response {
     pub data: Value,
 }
 
-fn default_limit_20() -> usize { 20 }
-fn default_limit_50() -> usize { 50 }
-fn default_limit_200() -> usize { 200 }
-fn is_false(v: &bool) -> bool { !*v }
+fn default_limit_20() -> usize {
+    20
+}
+fn default_limit_50() -> usize {
+    50
+}
+fn default_limit_200() -> usize {
+    200
+}
+fn is_false(v: &bool) -> bool {
+    !*v
+}
