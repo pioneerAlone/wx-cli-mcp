@@ -15,7 +15,7 @@ async fn main() -> Result<()> {
         .with_ansi(false)
         .init();
 
-    let server = server::WxServer.serve(stdio()).await?;
+    let server = server::WxServer::new().serve(stdio()).await?;
     server.waiting().await?;
     Ok(())
 }
