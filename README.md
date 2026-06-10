@@ -82,15 +82,19 @@ Or in `~/.claude.json` (project-level):
 
 ### GitHub Copilot CLI
 
-In your MCP config file:
+Edit `~/.copilot/mcp-config.json`:
 ```json
 {
-  "wx-mcp": {
-    "command": "wx-mcp",
-    "args": []
+  "mcpServers": {
+    "wx": {
+      "command": "wx-mcp",
+      "args": []
+    }
   }
 }
 ```
+
+> **Windows note**: If `wx-mcp` is not found after restart, your npm global bin may not be in PATH. Temporarily use the full path `C:\Users\<username>\AppData\Roaming\npm\wx-mcp.cmd`, or add `%APPDATA%\npm` to your PATH permanently.
 
 ### WorkBuddy / Tencent CodeBuddy
 

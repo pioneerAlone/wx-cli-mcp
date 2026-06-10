@@ -56,6 +56,16 @@ curl -fsSL https://raw.githubusercontent.com/pioneerAlone/wx-cli-mcp/main/instal
 irm https://raw.githubusercontent.com/pioneerAlone/wx-cli-mcp/main/install.ps1 | iex
 ```
 
+### 方式四：npx skills（agent skill 发现，适合 AI agent 使用者）
+
+将 wx-mcp 的 SKILL.md 安装到支持 skills 的 AI agent（如 GitHub Copilot CLI、WorkBuddy 等）：
+
+```bash
+npx skills add pioneerAlone/wx-cli-mcp
+```
+
+安装后，agent 会自动识别 wx-mcp 的触发词，在用户提到微信数据时主动使用相关工具。
+
 ---
 
 ## Agent 配置
@@ -75,20 +85,12 @@ irm https://raw.githubusercontent.com/pioneerAlone/wx-cli-mcp/main/install.ps1 |
 }
 ```
 
-Windows 若 PATH 未生效，改用绝对路径：
-
-```json
-{
-  "mcpServers": {
-    "wx": {
-      "command": "C:\\Users\\<用户名>\\AppData\\Local\\Programs\\wx-mcp\\wx-mcp.exe",
-      "args": []
-    }
-  }
-}
-```
-
 重启 Copilot CLI 生效。
+
+> **Windows 提示**：若重启后提示找不到命令，说明 npm 全局 bin 目录尚未加入 PATH。  
+> 临时解决：将 `command` 改为绝对路径，例如：  
+> `"command": "C:\\Users\\<用户名>\\AppData\\Roaming\\npm\\wx-mcp.cmd"`  
+> 永久解决：在系统设置中将 `%APPDATA%\npm` 加入 PATH，然后恢复使用命令名。
 
 ### Claude Code
 
