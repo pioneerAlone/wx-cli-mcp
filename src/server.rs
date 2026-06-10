@@ -1,34 +1,26 @@
-use rmcp::handler::server::router::tool::ToolRouter;
+﻿use rmcp::handler::server::router::tool::ToolRouter;
 use rmcp::handler::server::wrapper::Parameters;
 use rmcp::model::{CallToolResult, Content, ErrorCode};
 use rmcp::{tool, tool_handler, tool_router, ErrorData, ServerHandler};
 use serde::Deserialize;
-use serde_json::Value;
 
 use crate::ipc_client::ipc_send;
 use crate::ipc_types::Request;
 
-async fn ipc_query(req: Request) -> Result<Value, ErrorData> {
-    tokio::task::spawn_blocking(move || ipc_send(req))
+async fn ipc_query(req: Request) -> Result<CallToolResult, ErrorData> {
+    let resp = tokio::task::spawn_blocking(move || ipc_send(req))
         .await
         .map_err(|e| ErrorData::new(ErrorCode::INTERNAL_ERROR, e.to_string(), None))?
-        .map_err(|e| ErrorData::new(ErrorCode::INTERNAL_ERROR, e.to_string(), None))
-        .and_then(|resp| {
-            if resp.ok {
-                Ok(resp.data)
-            } else {
-                Err(ErrorData::new(
-                    ErrorCode::INTERNAL_ERROR,
-                    resp.error.unwrap_or_else(|| "daemon error".into()),
-                    None,
-                ))
-            }
-        })
-}
+        .map_err(|e| ErrorData::new(ErrorCode::INTERNAL_ERROR, e.to_string(), None))?;
 
-fn to_tool_result(data: Value) -> Result<CallToolResult, ErrorData> {
-    let text = serde_json::to_string_pretty(&data).unwrap_or_else(|_| data.to_string());
-    Ok(CallToolResult::success(vec![Content::text(text)]))
+    if resp.ok {
+        let text = serde_json::to_string_pretty(&resp.data)
+            .unwrap_or_else(|_| resp.data.to_string());
+        Ok(CallToolResult::success(vec![Content::text(text)]))
+    } else {
+        let msg = resp.error.unwrap_or_else(|| "daemon error".into());
+        Ok(CallToolResult::error(vec![Content::text(msg)]))
+    }
 }
 
 fn default_20() -> usize {
@@ -220,7 +212,7 @@ impl Default for WxServer {
 impl WxServer {
     #[tool(description = "ping wx-daemon，测试 MCP server 与 daemon 的连接是否正常。")]
     async fn wx_ping(&self) -> Result<CallToolResult, ErrorData> {
-        ipc_query(Request::Ping).await.and_then(to_tool_result)
+        ipc_query(Request::Ping).await
     }
 
     #[tool(description = "列出最近的微信会话，包含会话名称、未读数量、最新消息时间。")]
@@ -234,7 +226,7 @@ impl WxServer {
             debug_source: false,
         })
         .await
-        .and_then(to_tool_result)
+        
     }
 
     #[tool(description = "获取指定会话的聊天记录。chat 参数使用联系人显示名称或会话 ID。")]
@@ -253,7 +245,7 @@ impl WxServer {
             debug_source: false,
         })
         .await
-        .and_then(to_tool_result)
+        
     }
 
     #[tool(description = "全局搜索微信消息，按关键词匹配正文。可限定会话范围和时间范围。")]
@@ -272,7 +264,7 @@ impl WxServer {
             debug_source: false,
         })
         .await
-        .and_then(to_tool_result)
+        
     }
 
     #[tool(description = "查询本地微信联系人，支持按名称/备注模糊过滤。")]
@@ -285,7 +277,7 @@ impl WxServer {
             limit: p.limit,
         })
         .await
-        .and_then(to_tool_result)
+        
     }
 
     #[tool(description = "返回有未读消息的会话列表，可按类型过滤（private/group/official）。")]
@@ -300,7 +292,7 @@ impl WxServer {
             debug_source: false,
         })
         .await
-        .and_then(to_tool_result)
+        
     }
 
     #[tool(description = "获取群聊成员列表，包含成员的 username 和显示名称。")]
@@ -310,7 +302,7 @@ impl WxServer {
     ) -> Result<CallToolResult, ErrorData> {
         ipc_query(Request::Members { chat: p.chat })
             .await
-            .and_then(to_tool_result)
+            
     }
 
     #[tool(
@@ -327,7 +319,7 @@ impl WxServer {
             debug_source: false,
         })
         .await
-        .and_then(to_tool_result)
+        
     }
 
     #[tool(description = "查看指定会话的聊天统计：消息总数、活跃时段分布等。")]
@@ -343,7 +335,7 @@ impl WxServer {
             debug_source: false,
         })
         .await
-        .and_then(to_tool_result)
+        
     }
 
     #[tool(description = "查看微信收藏内容，支持按类型（文字/图片/文章/视频）和关键词过滤。")]
@@ -357,7 +349,7 @@ impl WxServer {
             query: p.query,
         })
         .await
-        .and_then(to_tool_result)
+        
     }
 
     #[tool(description = "浏览朋友圈时间线，可按时间范围和作者过滤。")]
@@ -372,7 +364,7 @@ impl WxServer {
             user: p.user,
         })
         .await
-        .and_then(to_tool_result)
+        
     }
 
     #[tool(description = "全文搜索朋友圈内容，匹配帖子正文中的关键词。")]
@@ -388,7 +380,7 @@ impl WxServer {
             user: p.user,
         })
         .await
-        .and_then(to_tool_result)
+        
     }
 
     #[tool(description = "查看朋友圈互动通知：别人对我的朋友圈点赞/评论，以及我评论过的帖子的后续回复。")]
@@ -403,7 +395,7 @@ impl WxServer {
             include_read: p.include_read,
         })
         .await
-        .and_then(to_tool_result)
+        
     }
 
     #[tool(description = "查询本地缓存的公众号文章推送，可按公众号名称过滤，可只看有未读的。")]
@@ -419,7 +411,7 @@ impl WxServer {
             unread: p.unread,
         })
         .await
-        .and_then(to_tool_result)
+        
     }
 }
 
