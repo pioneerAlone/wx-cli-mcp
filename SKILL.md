@@ -32,15 +32,18 @@ wx-mcp 是一个本地 MCP (Model Context Protocol) server，将 AI agent 连接
 
 ## 安装
 
-### 方式一：npx skills（推荐，AI agent 用户）
+### 方式一：npx skills（AI agent 用户推荐）
 
-将 wx-mcp skill 安装到支持 skills 的 AI agent（GitHub Copilot CLI、Claude Code、Cursor 等）：
+**两步完成安装：**
 
+**Step 1** — 安装 agent skill（让 agent 识别微信相关触发词）：
 ```bash
-npx skills add pioneerAlone/wx-cli-mcp
+npx skills add pioneerAlone/wx-cli-mcp -g --yes
 ```
 
-安装后重启 agent，agent 会自动识别微信相关触发词，并按本文档配置 MCP。
+**Step 2** — 配置 MCP server（工具调用必需，见下方 Agent 配置章节）。
+
+> ⚠️ **两步都需要**：`npx skills add` 只安装"知识层"，让 agent 知道有 wx-mcp；实际工具调用还需要配置 MCP server。配置后重启 agent 生效。
 
 ### 方式二：npm 全局安装（需要 Node.js >= 14）
 
@@ -53,6 +56,14 @@ npm install -g @bakewell/wx-mcp
 ```bash
 npm install -g @bakewell/wx-mcp@latest
 ```
+
+验证：
+
+```bash
+wx-mcp --version
+```
+
+安装后配置 MCP server（见下方 Agent 配置章节），重启 agent 生效。
 
 ### 方式三：curl（macOS / Linux）
 
