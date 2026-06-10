@@ -22,24 +22,15 @@ npm install -g @bakewell/wx-mcp
 npm install -g @bakewell/wx-mcp@latest
 ```
 
-### Option 2: npx (no install, always latest)
+### Option 2: npx skills (for AI agents)
 
-Run without installing globally — npx downloads and caches on first use:
+Install wx-mcp as a skill into your AI agent (GitHub Copilot CLI, Claude Code, Cursor, etc.) so it automatically recognizes WeChat-related requests:
 
 ```bash
-npx @bakewell/wx-mcp --version
+npx skills add pioneerAlone/wx-cli-mcp
 ```
 
-For MCP configuration, use `npx` as the command (AI agent auto-pulls on startup):
-```json
-{
-  "mcpServers": {
-    "wx-mcp": {
-      "command": "npx",
-      "args": ["-y", "@bakewell/wx-mcp"]
-    }
-  }
-}
+After installation, restart your AI agent — it will discover wx-mcp tools and prompt you to configure MCP when needed.
 ```
 
 ### Option 3: curl (macOS / Linux)
