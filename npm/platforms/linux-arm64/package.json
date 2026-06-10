@@ -1,0 +1,10 @@
+{
+  "name": "@bakewell/wx-mcp-linux-arm64",
+  "version": "0.1.0",
+  "description": "wx-mcp binary for Linux arm64",
+  "os": ["linux"],
+  "cpu": ["arm64"],
+  "files": ["bin/"],
+  "license": "Apache-2.0",
+  "publishConfig": { "access": "public" }
+}
