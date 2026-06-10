@@ -1,0 +1,30 @@
+{
+  "name": "@bakewell/wx-mcp",
+  "version": "0.1.0",
+  "description": "WeChat MCP server — connect AI agents to your local WeChat data via wx-cli daemon.",
+  "bin": {
+    "wx-mcp": "bin/wx-mcp.js"
+  },
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "files": [
+    "bin/",
+    "install.js"
+  ],
+  "optionalDependencies": {
+    "@bakewell/wx-mcp-darwin-arm64": "0.1.0",
+    "@bakewell/wx-mcp-darwin-x64":   "0.1.0",
+    "@bakewell/wx-mcp-linux-x64":    "0.1.0",
+    "@bakewell/wx-mcp-linux-arm64":  "0.1.0",
+    "@bakewell/wx-mcp-win32-x64":    "0.1.0"
+  },
+  "engines": { "node": ">=14" },
+  "keywords": ["wechat", "mcp", "wx-mcp", "llm", "ai", "model-context-protocol"],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pioneerAlone/wx-cli-mcp"
+  },
+  "publishConfig": { "access": "public" }
+}
