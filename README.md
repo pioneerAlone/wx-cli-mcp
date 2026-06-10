@@ -11,15 +11,54 @@ Bridges AI agents to your local WeChat data via the wx-daemon IPC protocol.
 
 ## Installation
 
-### Build from source
+### Option 1: npm (recommended, requires Node.js >= 14)
 
 ```bash
-git clone <this-repo>
-cd wx-mcp
+npm install -g @bakewell/wx-mcp
+```
+
+### Option 2: curl (macOS / Linux)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/pioneerAlone/wx-cli-mcp/main/install.sh | bash
+```
+
+### Option 3: PowerShell (Windows)
+
+```powershell
+irm https://raw.githubusercontent.com/pioneerAlone/wx-cli-mcp/main/install.ps1 | iex
+```
+
+### Option 4: GitHub Releases
+
+Download the pre-built binary for your platform from [Releases](https://github.com/pioneerAlone/wx-cli-mcp/releases).
+
+| Platform | File |
+|----------|------|
+| macOS Apple Silicon | `wx-mcp-macos-arm64` |
+| macOS Intel | `wx-mcp-macos-x86_64` |
+| Linux x86_64 | `wx-mcp-linux-x86_64` |
+| Linux ARM64 | `wx-mcp-linux-arm64` |
+| Windows x64 | `wx-mcp-windows-x64.exe` |
+
+<details>
+<summary>Build from source</summary>
+
+```bash
+git clone https://github.com/pioneerAlone/wx-cli-mcp
+cd wx-cli-mcp
 cargo build --release
-# Add the binary to your PATH, e.g.:
+# Add to PATH:
 #   Windows: copy target\release\wx-mcp.exe to a directory in PATH
 #   Linux/macOS: cp target/release/wx-mcp ~/.local/bin/
+```
+
+</details>
+
+### Verify installation
+
+```bash
+wx-mcp --version
 ```
 
 ## AI Agent Configuration
