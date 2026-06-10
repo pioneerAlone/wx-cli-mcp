@@ -17,19 +17,44 @@ Bridges AI agents to your local WeChat data via the wx-daemon IPC protocol.
 npm install -g @bakewell/wx-mcp
 ```
 
-### Option 2: curl (macOS / Linux)
+**Update to latest:**
+```bash
+npm install -g @bakewell/wx-mcp@latest
+```
+
+### Option 2: npx (no install, always latest)
+
+Run without installing globally — npx downloads and caches on first use:
+
+```bash
+npx @bakewell/wx-mcp --version
+```
+
+For MCP configuration, use `npx` as the command (AI agent auto-pulls on startup):
+```json
+{
+  "mcpServers": {
+    "wx-mcp": {
+      "command": "npx",
+      "args": ["-y", "@bakewell/wx-mcp"]
+    }
+  }
+}
+```
+
+### Option 3: curl (macOS / Linux)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/pioneerAlone/wx-cli-mcp/main/install.sh | bash
 ```
 
-### Option 3: PowerShell (Windows)
+### Option 4: PowerShell (Windows)
 
 ```powershell
 irm https://raw.githubusercontent.com/pioneerAlone/wx-cli-mcp/main/install.ps1 | iex
 ```
 
-### Option 4: GitHub Releases
+### Option 5: GitHub Releases
 
 Download the pre-built binary for your platform from [Releases](https://github.com/pioneerAlone/wx-cli-mcp/releases).
 
