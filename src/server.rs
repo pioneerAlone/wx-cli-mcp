@@ -478,7 +478,7 @@ impl WxServer {
 #[tool_handler(
     router = self.tool_router,
     name = "wx-mcp",
-    version = "0.1.1",
+    version = "0.2.0",
     instructions = "本地微信数据 MCP server。需要先运行 wx daemon start 启动 daemon。"
 )]
 impl ServerHandler for WxServer {}
