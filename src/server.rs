@@ -207,6 +207,17 @@ pub struct AttachmentsParams {
     pub kinds: Option<Vec<String>>,
 }
 
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct ExtractParams {
+    /// 由 wx_attachments 返回的不透明 attachment_id（base64url 字符串）
+    pub attachment_id: String,
+    /// 输出文件路径（绝对路径，daemon 直接写盘；扩展名建议保留如 .jpg）
+    pub output: String,
+    /// 目标已存在时覆盖，默认 false
+    #[serde(default)]
+    pub overwrite: bool,
+}
+
 #[derive(Clone)]
 pub struct WxServer {
     tool_router: ToolRouter<Self>,
@@ -449,6 +460,19 @@ impl WxServer {
         })
         .await
     }
+
+    #[tool(description = "把单个 attachment_id 对应的资源解密写到指定文件路径。output 为绝对路径，由 daemon 直接写盘。需先用 wx_attachments 获取 attachment_id。返回 format/decoder/output_size 元数据。")]
+    async fn wx_extract(
+        &self,
+        Parameters(p): Parameters<ExtractParams>,
+    ) -> Result<CallToolResult, ErrorData> {
+        ipc_query(Request::Extract {
+            attachment_id: p.attachment_id,
+            output: p.output,
+            overwrite: p.overwrite,
+        })
+        .await
+    }
 }
 
 #[tool_handler(
@@ -567,5 +591,18 @@ mod tests {
         assert_eq!(params.kinds, None);
         assert_eq!(params.since, None);
         assert_eq!(params.until, None);
+    }
+
+    #[test]
+    fn extract_params_default_overwrite_is_false() {
+        let params: ExtractParams = serde_json::from_value(json!({
+            "attachment_id": "dGVzdA",
+            "output": "/tmp/test.jpg",
+        }))
+        .unwrap();
+
+        assert_eq!(params.attachment_id, "dGVzdA");
+        assert_eq!(params.output, "/tmp/test.jpg");
+        assert!(!params.overwrite);
     }
 }
