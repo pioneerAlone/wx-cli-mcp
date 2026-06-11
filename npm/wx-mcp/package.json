@@ -1,7 +1,7 @@
 {
   "name": "@bakewell/wx-mcp",
-  "version": "0.1.0",
-  "description": "WeChat MCP server — connect AI agents to your local WeChat data via wx-cli daemon.",
+  "version": "0.2.0",
+  "description": "WeChat MCP server �?connect AI agents to your local WeChat data via wx-cli daemon.",
   "bin": {
     "wx-mcp": "bin/wx-mcp.js"
   },
@@ -13,11 +13,11 @@
     "install.js"
   ],
   "optionalDependencies": {
-    "@bakewell/wx-mcp-darwin-arm64": "0.1.0",
-    "@bakewell/wx-mcp-darwin-x64":   "0.1.0",
-    "@bakewell/wx-mcp-linux-x64":    "0.1.0",
-    "@bakewell/wx-mcp-linux-arm64":  "0.1.0",
-    "@bakewell/wx-mcp-win32-x64":    "0.1.0"
+    "@bakewell/wx-mcp-darwin-arm64": "0.2.0",
+    "@bakewell/wx-mcp-darwin-x64":   "0.2.0",
+    "@bakewell/wx-mcp-linux-x64":    "0.2.0",
+    "@bakewell/wx-mcp-linux-arm64":  "0.2.0",
+    "@bakewell/wx-mcp-win32-x64":    "0.2.0"
   },
   "engines": { "node": ">=14" },
   "keywords": ["wechat", "mcp", "wx-mcp", "llm", "ai", "model-context-protocol"],

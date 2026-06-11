@@ -81,7 +81,9 @@ cargo build --release
 
 ## AI Agent Configuration
 
-After installing wx-mcp (Step 1), configure your AI agent to use it as an MCP server. All agents support the `npx` command format which always uses the latest version:
+After installing wx-mcp globally (`npm install -g @bakewell/wx-mcp`), configure your AI agent to use it as an MCP server.
+
+> ⚠️ **Multi-agent stability**: When running multiple AI agents simultaneously (e.g. Copilot CLI + Claude Code), always use the global install (`npm install -g`) approach. Using `npx -y` causes npm cache contention when multiple agents start concurrently, leading to connection instability.
 
 ### GitHub Copilot CLI
 
@@ -90,8 +92,8 @@ Edit `~/.copilot/mcp-config.json`:
 {
   "mcpServers": {
     "wx": {
-      "command": "npx",
-      "args": ["-y", "@bakewell/wx-mcp"]
+      "command": "wx-mcp",
+      "args": []
     }
   }
 }
@@ -100,7 +102,7 @@ Edit `~/.copilot/mcp-config.json`:
 ### Claude Code
 
 ```bash
-claude mcp add wx -- npx -y @bakewell/wx-mcp
+claude mcp add wx -- wx-mcp
 ```
 
 Or in `~/.claude.json`:
@@ -108,8 +110,8 @@ Or in `~/.claude.json`:
 {
   "mcpServers": {
     "wx": {
-      "command": "npx",
-      "args": ["-y", "@bakewell/wx-mcp"]
+      "command": "wx-mcp",
+      "args": []
     }
   }
 }
@@ -123,8 +125,8 @@ In `~/.codebuddy/.mcp.json`:
   "mcpServers": {
     "wx": {
       "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@bakewell/wx-mcp"]
+      "command": "wx-mcp",
+      "args": []
     }
   }
 }
@@ -161,6 +163,8 @@ In `.cursor/mcp.json`:
 | `wx_sns_search` | Search Moments content |
 | `wx_sns_notifications` | Moments interaction notifications |
 | `wx_biz_articles` | Official account articles |
+| `wx_attachments` | List attachments (images, videos, files) in a chat |
+| `wx_extract` | Extract/decrypt an attachment to local filesystem |
 
 ## Troubleshooting
 
