@@ -189,6 +189,24 @@ pub struct BizArticlesParams {
     pub unread: bool,
 }
 
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct AttachmentsParams {
+    /// 会话 ID 或显示名称（必填，可从 wx_sessions 结果获取）
+    pub chat: String,
+    /// 返回数量上限，默认 50
+    #[serde(default = "default_50")]
+    pub limit: usize,
+    /// 分页偏移，默认 0
+    #[serde(default)]
+    pub offset: usize,
+    /// 起始时间 Unix timestamp（可选）
+    pub since: Option<i64>,
+    /// 结束时间 Unix timestamp（可选）
+    pub until: Option<i64>,
+    /// 附件类型（可选，当前仅支持 image）
+    pub kinds: Option<Vec<String>>,
+}
+
 #[derive(Clone)]
 pub struct WxServer {
     tool_router: ToolRouter<Self>,
@@ -413,6 +431,24 @@ impl WxServer {
         .await
         
     }
+
+    #[tool(description = "列出某会话的图片附件，返回不透明 attachment_id 列表。两步流程：先 wx_attachments 获取 id，再用 wx_extract 解密写盘。支持时间范围和分页过滤。")]
+    async fn wx_attachments(
+        &self,
+        Parameters(p): Parameters<AttachmentsParams>,
+    ) -> Result<CallToolResult, ErrorData> {
+        ipc_query(Request::Attachments {
+            chat: p.chat,
+            kinds: p.kinds,
+            limit: p.limit,
+            offset: p.offset,
+            since: p.since,
+            until: p.until,
+            with_meta: false,
+            debug_source: false,
+        })
+        .await
+    }
 }
 
 #[tool_handler(
@@ -517,5 +553,19 @@ mod tests {
         assert_eq!(params.since, None);
         assert_eq!(params.until, None);
         assert!(!params.unread);
+    }
+
+    #[test]
+    fn attachments_params_default_limit_is_50_and_offset_is_0() {
+        let params: AttachmentsParams = serde_json::from_value(json!({
+            "chat": "张三",
+        }))
+        .unwrap();
+
+        assert_eq!(params.limit, 50);
+        assert_eq!(params.offset, 0);
+        assert_eq!(params.kinds, None);
+        assert_eq!(params.since, None);
+        assert_eq!(params.until, None);
     }
 }
